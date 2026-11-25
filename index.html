@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planejamento de Gastos — Dia 15 &amp; Dia 30</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">💳</div>
+        <div>
+          <h1>Planejamento de Gastos</h1>
+          <p class="subtitle">Controle quinzenal · Dia 15 &amp; Dia 30</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="month-controls">
+          <select id="monthSelect" class="select-input" aria-label="Selecionar mês"></select>
+          <button id="btnNewMonth" class="btn btn-primary btn-sm" title="Criar novo mês avançando parcelas">+ Novo Mês</button>
+        </div>
+
+        <div class="utility-actions">
+          <button id="btnExport" class="btn btn-ghost btn-sm" title="Baixar backup JSON">Exportar</button>
+          <label class="btn btn-ghost btn-sm file-btn" title="Restaurar backup JSON">
+            Importar
+            <input id="inputImport" type="file" accept="application/json" hidden />
+          </label>
+          <button id="btnTheme" class="btn btn-icon" title="Alternar tema claro/escuro" aria-label="Alternar tema">☀️</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- KPI Strip -->
+    <section class="kpi-grid" aria-label="Resumo do mês">
+      <article class="kpi-card">
+        <span class="kpi-label">Entradas Totais</span>
+        <strong id="kpiEntradas" class="kpi-value positive">R$ 0,00</strong>
+        <span id="kpiEntradasSub" class="kpi-sub">Dia 15 + Dia 30</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Saídas (Contas + Cartões)</span>
+        <strong id="kpiSaidas" class="kpi-value negative">R$ 0,00</strong>
+        <div class="progress-track">
+          <div id="kpiProgressBar" class="progress-fill" style="width: 0%"></div>
+        </div>
+        <span id="kpiSaidasSub" class="kpi-sub">0% da renda comprometida</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Saldo Após Fixas &amp; Cartões</span>
+        <strong id="kpiSaldoBase" class="kpi-value">R$ 0,00</strong>
+        <span id="kpiSaldoBaseSub" class="kpi-sub">Dia 15 + Dia 30</span>
+      </article>
+      <article class="kpi-card highlight">
+        <span class="kpi-label">Saldo Livre Final</span>
+        <strong id="kpiSaldoLivre" class="kpi-value accent">R$ 0,00</strong>
+        <span id="kpiSaldoLivreSub" class="kpi-sub">Após Pix previstos &amp; meta de guardar</span>
+      </article>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="janelas" role="tab" aria-selected="true">📅 Janelas (Dia 15 &amp; 30)</button>
+      <button class="tab" data-tab="cartoes" role="tab" aria-selected="false">💳 Detalhamento de Cartões</button>
+      <button class="tab" data-tab="extras" role="tab" aria-selected="false">🎯 Pix Previstos &amp; Metas</button>
+    </nav>
+
+    <!-- TAB 1: JANELAS (DIA 15 & DIA 30) -->
+    <main id="tab-janelas" class="tab-panel active">
+      <div class="windows-grid">
+        <!-- Janela Dia 15 -->
+        <section class="window-card">
+          <div class="window-header">
+            <div>
+              <span class="badge badge-blue">Janela 1</span>
+              <h2>Adiantamento — Dia 15</h2>
+            </div>
+            <div class="income-box">
+              <label for="entrada15">Entrada (R$)</label>
+              <input id="entrada15" type="number" step="0.01" class="money-input" />
+            </div>
+          </div>
+
+          <div class="window-summary">
+            <div>
+              <span class="mini-label">Saídas</span>
+              <strong id="saidas15" class="negative">R$ 0,00</strong>
+            </div>
+            <div>
+              <span class="mini-label">Saldo Restante</span>
+              <strong id="saldo15" class="positive">R$ 0,00</strong>
+            </div>
+          </div>
+
+          <ul id="list15" class="expense-list"></ul>
+
+          <form id="formAdd15" class="quick-add-form">
+            <input name="nome" type="text" placeholder="Nova conta do dia 15 (ex: Internet)" required />
+            <input name="valor" type="number" step="0.01" placeholder="Valor (negativo = crédito)" required />
+            <button type="submit" class="btn btn-primary">+</button>
+          </form>
+        </section>
+
+        <!-- Janela Dia 30 -->
+        <section class="window-card">
+          <div class="window-header">
+            <div>
+              <span class="badge badge-purple">Janela 2</span>
+              <h2>Pagamento — Dia 30</h2>
+            </div>
+            <div class="income-box">
+              <label for="entrada30">Entrada (R$)</label>
+              <input id="entrada30" type="number" step="0.01" class="money-input" />
+            </div>
+          </div>
+
+          <div class="window-summary">
+            <div>
+              <span class="mini-label">Saídas (líquido)</span>
+              <strong id="saidas30" class="negative">R$ 0,00</strong>
+            </div>
+            <div>
+              <span class="mini-label">Saldo Restante</span>
+              <strong id="saldo30" class="positive">R$ 0,00</strong>
+            </div>
+          </div>
+
+          <div class="cards-sync-note">
+            <span>Os totais dos cartões abaixo são calculados automaticamente pela aba <strong>Cartões</strong>.</span>
+          </div>
+
+          <ul id="list30" class="expense-list"></ul>
+
+          <form id="formAdd30" class="quick-add-form">
+            <input name="nome" type="text" placeholder="Nova conta ou reembolso (use -valor)" required />
+            <input name="valor" type="number" step="0.01" placeholder="Valor (ex: -46.66)" required />
+            <button type="submit" class="btn btn-primary">+</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- Simulador de Reserva Dia 15 -> Dia 30 -->
+      <section class="simulator-card">
+        <div class="simulator-header">
+          <div>
+            <h3>⚖️ Simulador de Equilíbrio (Caixinha Dia 15 → Dia 30)</h3>
+            <p class="muted">Simule guardar um valor do dia 15 numa Caixinha para aliviar o dia 30 sem mudar vencimento.</p>
+          </div>
+          <div class="sim-value-badge">
+            Reservar no dia 15: <strong id="simAmountLabel">R$ 0,00</strong>
+          </div>
+        </div>
+        <input id="simRange" type="range" min="0" max="1000" step="10" value="0" class="slider" />
+        <div class="sim-results">
+          <div>Dia 15 ajustado: <strong id="simSaldo15">R$ 0,00</strong></div>
+          <div>Dia 30 ajustado: <strong id="simSaldo30">R$ 0,00</strong></div>
+          <button id="btnSimAuto" class="btn btn-ghost btn-sm">Equilibrar 50/50</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- TAB 2: DETALHAMENTO DE CARTÕES -->
+    <main id="tab-cartoes" class="tab-panel">
+      <section class="panel-card">
+        <div class="panel-header">
+          <div>
+            <h2>Lançamentos nos Cartões</h2>
+            <p class="muted">Clique no nome de qualquer item para renomear. O total atualiza a janela do Dia 30 automaticamente.</p>
+          </div>
+          <div class="filter-pills" id="cardFilters">
+            <button class="pill active" data-card="Todos">Todos</button>
+            <button class="pill" data-card="Itaú">Itaú</button>
+            <button class="pill" data-card="Nubank">Nubank</button>
+            <button class="pill" data-card="Mercado Pago">Mercado Pago</button>
+          </div>
+        </div>
+
+        <div class="card-totals-strip" id="cardTotalsStrip"></div>
+
+        <form id="formAddCardItem" class="card-add-form">
+          <select name="cartao" required>
+            <option value="Itaú">Itaú</option>
+            <option value="Nubank">Nubank</option>
+            <option value="Mercado Pago">Mercado Pago</option>
+          </select>
+          <input name="item" type="text" placeholder="O que é (nome amigável)" required />
+          <input name="fatura" type="text" placeholder="Nome na fatura (opcional)" />
+          <select name="tipo">
+            <option value="Parcelamento">Parcelamento</option>
+            <option value="Avulso">Avulso</option>
+            <option value="Mensalidade">Mensalidade</option>
+          </select>
+          <input name="parcelaAtual" type="number" min="1" placeholder="Parc." value="1" />
+          <input name="totalParcelas" type="number" min="1" placeholder="De" value="1" />
+          <input name="valor" type="number" step="0.01" placeholder="Valor (R$)" required />
+          <select name="responsavel">
+            <option value="Eu">Eu</option>
+            <option value="Mãe (Reembolso)">Mãe (Reembolso)</option>
+            <option value="Outro">Outro</option>
+          </select>
+          <button type="submit" class="btn btn-primary">+ Lançar</button>
+        </form>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Cartão</th>
+                <th>Item (clique para editar)</th>
+                <th>Tipo</th>
+                <th>Parcela</th>
+                <th>Responsável</th>
+                <th class="num">Valor/mês</th>
+                <th class="num">Restante</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cardsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- TAB 3: PIX PREVISTOS & METAS -->
+    <main id="tab-extras" class="tab-panel">
+      <div class="windows-grid">
+        <!-- Pix / Débito Previstos -->
+        <section class="window-card">
+          <div class="window-header">
+            <div>
+              <span class="badge badge-green">Dia a Dia</span>
+              <h2>Gastos Previstos (Pix / Débito)</h2>
+            </div>
+            <strong id="totalExtras" class="negative">R$ 0,00</strong>
+          </div>
+
+          <div class="vlt-helper">
+            <span>🚆 Calculadora VLT:</span>
+            <input id="vltDias" type="number" min="0" max="31" value="22" class="tiny-input" />
+            <span>dias × R$</span>
+            <input id="vltTarifa" type="number" step="0.10" value="11.20" class="tiny-input" />
+            <button id="btnApplyVlt" class="btn btn-ghost btn-sm">Atualizar VLT</button>
+          </div>
+
+          <ul id="listExtras" class="expense-list"></ul>
+
+          <form id="formAddExtra" class="quick-add-form">
+            <input name="nome" type="text" placeholder="Ex: Aula xadrez, Torneio, Mercado" required />
+            <input name="valor" type="number" step="0.01" placeholder="Valor (R$)" required />
+            <button type="submit" class="btn btn-primary">+</button>
+          </form>
+        </section>
+
+        <!-- Meta de Guardar -->
+        <section class="window-card">
+          <div class="window-header">
+            <div>
+              <span class="badge badge-accent">Reserva</span>
+              <h2>Meta de Guardar no Mês</h2>
+            </div>
+            <strong id="totalMeta" class="positive">R$ 0,00</strong>
+          </div>
+
+          <div class="goal-inputs">
+            <div class="goal-field">
+              <label for="meta15">Guardar no Dia 15 (R$)</label>
+              <input id="meta15" type="number" step="10" class="money-input" />
+            </div>
+            <div class="goal-field">
+              <label for="meta30">Guardar no Dia 30 (R$)</label>
+              <input id="meta30" type="number" step="10" class="money-input" />
+            </div>
+          </div>
+
+          <div class="goal-summary-box">
+            <div class="goal-row">
+              <span>% da renda guardada</span>
+              <strong id="metaPercent">0%</strong>
+            </div>
+            <div class="goal-row">
+              <span>Saldo livre real para o mês (lazer / mercado)</span>
+              <strong id="metaLivreMes" class="accent">R$ 0,00</strong>
+            </div>
+            <div class="goal-row">
+              <span>Média livre por semana (÷ 4)</span>
+              <strong id="metaLivreSemana">R$ 0,00</strong>
+            </div>
+          </div>
+
+          <div class="footer-reset">
+            <button id="btnResetData" class="btn btn-danger-ghost btn-sm">Restaurar dados iniciais</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Novo Mês -->
+  <div id="modalNewMonth" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h3 id="modalTitle">Criar Novo Mês</h3>
+      <p class="muted">As contas fixas e parcelas que ainda não terminaram são copiadas e avançadas automaticamente (ex: 3/4 → 4/4).</p>
+      <form id="formNewMonth" class="modal-form">
+        <label>
+          Nome do mês
+          <input name="label" type="text" placeholder="Ex: Janeiro 2027" required />
+        </label>
+        <label class="checkbox-row">
+          <input name="cloneCurrent" type="checkbox" checked />
+          Clonar fixas e avançar parcelas do mês atual
+        </label>
+        <div class="modal-actions">
+          <button type="button" id="btnCancelMonth" class="btn btn-ghost">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar Mês</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

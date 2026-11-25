@@ -1,0 +1,6 @@
+# Arquivos pessoais de backup financeiro (NUNCA subir para o GitHub)
+meu-backup-*.json
+*.backup.json
+planejamento-gastos-backup*.json
+.DS_Store
+Thumbs.db
